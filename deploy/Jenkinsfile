@@ -17,5 +17,13 @@
         }
       }
     }
+
+    stage('Package')  {
+      steps {
+        script {
+          sh 'echo "Packaging Stage"'
+        }
+      }
+    }
     }
 }
