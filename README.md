@@ -253,3 +253,60 @@ stage('Plot Code Coverage Report') {
 
 }
 }
+
+## Jenkins File script.
+---
+
+   pipeline {
+    agent any
+
+  stages {
+
+    stage ('Initial Clean Up'){
+      steps {
+        dir ("${WORKSPACE}"){
+          deleteDir()
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        script {
+          sh 'echo "Building Stage"'
+        }
+      }
+    }
+
+    stage('Test') {
+      steps {
+        script {
+          sh 'echo "Testing Stage"'
+        }
+      }
+    }
+
+    stage('Package')  {
+      steps {
+        script {
+          sh 'echo "Packaging Stage"'
+        }
+      }
+    }
+
+    stage ('Deploy') { 
+      steps {
+        script {
+          sh 'echo "Deploy Stage"'
+        }
+      }
+    }
+
+    stage ('Clean Up') {
+      steps {
+        CleanWs()
+        }
+      } 
+      }
+     }
+---
