@@ -1,53 +1,48 @@
-   pipeline {
+pipeline {
     agent any
 
-  stages {
-
-    stage ('Initial Clean Up'){
-      steps {
-        dir ("${WORKSPACE}"){
-          deleteDir()
+    parameters {
+        string (name: 'env', defaultValue: 'dev.yml',  description: 'This is the inventory file for the environment to deploy configuration')
         }
-      }
-    }
 
-    stage('Build') {
-      steps {
-        script {
-          sh 'echo "Building Stage"'
-        }
-      }
-    }
+    environment {
+        ANSIBLE_CONFIG="${WORKSPACE}/deploy/.ansible.cfg"
+            }
 
-    stage('Test') {
-      steps {
-        script {
-          sh 'echo "Testing Stage"'
-        }
-      }
-    }
-
-    stage('Package')  {
-      steps {
-        script {
-          sh 'echo "Packaging Stage"'
-        }
-      }
-    }
-
-    stage ('Deploy') { 
-      steps {
-        script {
-          sh 'echo "Deploy Stage"'
-        }
-      }
-    }
-
-    stage ('Clean Up') {
-      steps {
-        CleanWs()
-        }
-      } 
-      }
-     }
     
+
+    stages {
+        stage("Initial cleanup") {
+            steps {
+                dir("${WORKSPACE}") {
+                deleteDir()
+                    }
+                }
+            }
+
+        stage ('Checkout SCM') {
+            steps{
+                git branch: 'feature/jenkinspipeline', url: 'https://github.com/yemveiser/ansible-configuration-management-3.git'
+            }
+        }
+
+        stage ('Prepare Ansible For Execution') {
+            steps {
+            sh 'echo ${WORKSPACE}' 
+            sh 'sed -i "3 a roles_path=${WORKSPACE}/roles" ${WORKSPACE}/deploy/.ansible.cfg'  
+            }
+        }
+
+        stage ('Run Ansible playbook') {
+            steps {
+            ansiblePlaybook become: true, colorized: true, credentialsId: 'Private-key', disableHostKeyChecking: true, installation: 'Ansible', inventory: 'inventory/dev', playbook: 'playbooks/site.yml'
+            }
+        }
+
+        stage ('Clean Workspace after build') {
+            steps {
+            cleanWs(cleanWhenAborted: true, cleanWhenFailure: true, cleanWhenNotBuilt: true, cleanWhenUnstable: true, deleteDirs: true)
+            }
+        }
+    }
+}
